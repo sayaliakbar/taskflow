@@ -14,7 +14,7 @@ const createTask = async (req, res) => {
       status,
       assignedTo,
       dueDate,
-      createdBy: req.user.id, // The user who created the task
+      createdBy: req.user.id,
     });
 
     await task.save();
@@ -31,10 +31,65 @@ const createTask = async (req, res) => {
 
 const getTasks = async (req, res) => {
   try {
-    const tasks = await Task.find()
+    let {
+      page = 1,
+      limit = 10,
+      search = "",
+      sortBy = "createdAt",
+      sortOrder = "desc",
+    } = req.query;
+
+    page = parseInt(page);
+    limit = parseInt(limit);
+
+    if (page <= 0 || limit <= 0) {
+      return res
+        .status(400)
+        .json({ message: "Page and limit must be positive integers" });
+    }
+
+    const order = sortOrder === "asc" ? 1 : sortOrder === "desc" ? -1 : null;
+    if (order === null) {
+      return res
+        .status(400)
+        .json({ message: "sortOrder must be either 'asc' or 'desc'" });
+    }
+
+    const validSortFields = ["createdAt", "title", "status", "dueDate"];
+    if (!validSortFields.includes(sortBy)) {
+      return res.status(400).json({
+        message: `sortBy must be one of the following: ${validSortFields.join(
+          ", "
+        )}`,
+      });
+    }
+
+    const searchQuery = search
+      ? {
+          $or: [
+            { title: { $regex: search, $options: "i" } },
+            { description: { $regex: search, $options: "i" } },
+          ],
+        }
+      : {};
+
+    const tasks = await Task.find(searchQuery)
       .populate("assignedTo", "name email")
-      .populate("createdBy", "name email");
-    res.status(200).json(tasks);
+      .populate("createdBy", "name email")
+      .sort({ [sortBy]: order })
+      .limit(limit)
+      .skip((page - 1) * limit);
+
+    const totalTasks = await Task.countDocuments(searchQuery);
+
+    res.status(200).json({
+      tasks,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(totalTasks / limit),
+        totalTasks,
+      },
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error fetching tasks", error });
@@ -66,7 +121,6 @@ const updateTask = async (req, res) => {
       return res.status(404).json({ message: "Task not found" });
     }
 
-    // Update fields
     task.title = title || task.title;
     task.description = description || task.description;
     task.status = status || task.status;
@@ -75,15 +129,12 @@ const updateTask = async (req, res) => {
 
     await task.save();
 
-    // Send the response first
     res.status(200).json(task);
 
     const io = req.app.get("io");
 
-    // Emit the update event after response
     io.emit("taskUpdated", task);
   } catch (error) {
-    // Ensure no additional response is sent if headers have already been set
     if (!res.headersSent) {
       res.status(500).json({ message: "Error updating task", error });
     }
@@ -102,10 +153,9 @@ const deleteTask = async (req, res) => {
     res.status(200).json({ message: "Task deleted successfully" });
 
     const io = req.app.get("io");
-    // Emit taskDeleted event
+
     io.emit("taskDeleted", task);
   } catch (error) {
-    // Ensure no additional response is sent if headers have already been set
     if (!res.headersSent) {
       res.status(500).json({ message: "Error updating task", error });
     }
