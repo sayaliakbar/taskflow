@@ -10,9 +10,13 @@ const verifyToken = async (req, res, next) => {
       req.headers.authorization &&
       req.headers.authorization.startsWith("Bearer")
     ) {
-      token = req.headers.authorization.split(" ")[1];
+      token = req.cookies?.token || req.headers.authorization.split(" ")[1];
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      if (Date.now() >= decoded.exp * 1000) {
+        throw new CustomError("Token expired", 401);
+      }
 
       req.user = await User.findById(decoded.id).select("-password");
 
@@ -36,12 +40,10 @@ const verifyToken = async (req, res, next) => {
 const verifyRole = (requiredRoles) => {
   return (req, res, next) => {
     try {
-      // Ensure roles are an array (e.g., ['Admin', 'Editor'])
       const roles = Array.isArray(requiredRoles)
         ? requiredRoles
         : [requiredRoles];
 
-      // Check if user role is authorized
       if (!roles.includes(req.user.role)) {
         throw new CustomError(
           `Access denied: Requires one of the following roles - ${roles.join(
@@ -51,9 +53,9 @@ const verifyRole = (requiredRoles) => {
         );
       }
 
-      next(); // Role is valid, proceed
+      next();
     } catch (error) {
-      next(error); // Pass error to error-handling middleware
+      next(error);
     }
   };
 };
