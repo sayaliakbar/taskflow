@@ -16,7 +16,7 @@ const generateToken = (id) => {
 };
 
 const registerUser = async (req, res, next) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, role } = req.body;
 
   try {
     const userExists = await User.findOne({ email });
@@ -27,13 +27,18 @@ const registerUser = async (req, res, next) => {
       );
     }
 
-    const newUser = await User.create({ name, email, password });
+    const newUser = await User.create({ name, email, password, role });
 
     res.status(201).json({
       status: "success",
       message: "User created successfully",
       token: generateToken(newUser._id),
-      data: { id: newUser._id, name: newUser.name, email: newUser.email },
+      data: {
+        id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role,
+      },
     });
   } catch (error) {
     next(error);
@@ -49,11 +54,21 @@ const loginUser = async (req, res, next) => {
       throw new CustomError("Invalid email or password", 400);
     }
 
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      throw new CustomError("Invalid email or password", 400);
+    }
+
     res.status(200).json({
       status: "success",
       message: "You are logged in successfully",
       token: generateToken(user._id),
-      data: { id: user._id, name: user.name, email: user.email },
+      data: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
     });
   } catch (error) {
     next(error);
@@ -72,7 +87,7 @@ const forgotPassword = async (req, res, next) => {
     const resetToken = user.getResetPasswordToken();
     await user.save();
 
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+    const resetUrl = `${process.env.FRONTEND_URL}/api/auth/reset-password?token=${resetToken}`;
 
     const mailOptions = {
       from: '"Admin" <sayaliakbar@gmail.com>',
@@ -101,7 +116,7 @@ const forgotPassword = async (req, res, next) => {
 };
 
 const resetPassword = async (req, res, next) => {
-  const { token } = req.body;
+  const { token } = req.query;
 
   if (!token) {
     throw new CustomError("Invalid or expired token", 400);
