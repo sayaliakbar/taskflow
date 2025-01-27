@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const { CustomError } = require("../middlewares/errorMiddleware");
 
-const protect = async (req, res, next) => {
+const verifyToken = async (req, res, next) => {
   let token;
 
   try {
@@ -33,4 +33,29 @@ const protect = async (req, res, next) => {
   }
 };
 
-module.exports = protect;
+const verifyRole = (requiredRoles) => {
+  return (req, res, next) => {
+    try {
+      // Ensure roles are an array (e.g., ['Admin', 'Editor'])
+      const roles = Array.isArray(requiredRoles)
+        ? requiredRoles
+        : [requiredRoles];
+
+      // Check if user role is authorized
+      if (!roles.includes(req.user.role)) {
+        throw new CustomError(
+          `Access denied: Requires one of the following roles - ${roles.join(
+            ", "
+          )}`,
+          403
+        );
+      }
+
+      next(); // Role is valid, proceed
+    } catch (error) {
+      next(error); // Pass error to error-handling middleware
+    }
+  };
+};
+
+module.exports = { verifyToken, verifyRole };

@@ -49,16 +49,11 @@ const loginUser = async (req, res, next) => {
       throw new CustomError("Invalid email or password", 400);
     }
 
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      throw new CustomError("Invalid email or password", 400);
-    }
-
     res.status(200).json({
       status: "success",
-      message: "User created successfully",
-      token: generateToken(isMatch._id),
-      data: { id: isMatch._id, name: isMatch.name, email: isMatch.email },
+      message: "You are logged in successfully",
+      token: generateToken(user._id),
+      data: { id: user._id, name: user.name, email: user.email },
     });
   } catch (error) {
     next(error);

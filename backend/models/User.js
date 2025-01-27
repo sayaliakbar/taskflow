@@ -14,7 +14,11 @@ const UserSchema = new mongoose.Schema(
     password: { type: String, required: true },
     resetPasswordToken: { type: String },
     resetPasswordExpire: { type: Date },
-    verified: { type: Boolean, default: false },
+    role: {
+      type: String,
+      enum: ["Admin", "Editor", "Viewer"],
+      default: "Viewer",
+    },
   },
 
   { timestamps: true }
