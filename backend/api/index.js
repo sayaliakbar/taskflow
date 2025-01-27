@@ -2,12 +2,12 @@ const express = require("express");
 const dotenv = require("dotenv");
 dotenv.config();
 const morgan = require("morgan");
-const connectDB = require("./config/db");
+const connectDB = require("../config/db");
 
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 
-const { errorHandler, CustomError } = require("./middlewares/errorMiddleware");
+const { errorHandler, CustomError } = require("../middlewares/errorMiddleware");
 
 const cors = require("cors");
 
@@ -34,15 +34,13 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173", // Development origin
-      "http://localhost:4173", // Alternative development frontend
-      "https://your-production-frontend.com", // Production frontend
     ],
     credentials: true,
   })
 );
 
-app.use("/api/auth", require("./routes/authRoutes"));
-app.use("/api/tasks", require("./routes/taskRoutes"));
+app.use("/api/auth", require("../routes/authRoutes"));
+app.use("/api/tasks", require("../routes/taskRoutes"));
 
 // Example route
 app.get("/", (req, res) => {
