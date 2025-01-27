@@ -14,6 +14,8 @@ const {
   resetPassword,
 } = require("../controllers/authController");
 
+const { verifyToken } = require("../middlewares/authMiddleware");
+
 const router = express.Router();
 
 const asyncHandler = (fn) => (req, res, next) =>
@@ -26,12 +28,14 @@ router.post("/login", validateLogin, asyncHandler(loginUser));
 router.post(
   "/forgot-password",
   validateForgotPassword,
+  verifyToken,
   asyncHandler(forgotPassword)
 );
 
 router.post(
   "/reset-password",
   validateResetPassword,
+
   asyncHandler(resetPassword)
 );
 

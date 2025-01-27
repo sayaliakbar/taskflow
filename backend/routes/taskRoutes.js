@@ -12,21 +12,33 @@ const {
 
 const { validateTask } = require("../middlewares/taskValidationMiddleware");
 
-const { verifyToken } = require("../middlewares/authMiddleware");
+const { verifyToken, verifyRole } = require("../middlewares/authMiddleware");
 
 // Create a new task
-router.post("/", verifyToken, validateTask, createTask);
+router.post(
+  "/",
+  verifyToken,
+  validateTask,
+  verifyRole(["admin", "editor"]),
+  createTask
+);
 
 // Get all tasks
-router.get("/", verifyToken, getTasks);
+router.get("/", verifyToken, verifyRole(["admin", "editor"]), getTasks);
 
 // Get a single task by ID
 router.get("/:id", verifyToken, getTaskById);
 
 // Update a task
-router.put("/:id", verifyToken, validateTask, updateTask);
+router.put(
+  "/:id",
+  verifyToken,
+  validateTask,
+  verifyRole(["admin", "editor"]),
+  updateTask
+);
 
 // Delete a task
-router.delete("/:id", verifyToken, deleteTask);
+router.delete("/:id", verifyToken, verifyRole(["admin"]), deleteTask);
 
 module.exports = router;
