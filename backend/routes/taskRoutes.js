@@ -8,9 +8,13 @@ const {
   getTaskById,
   updateTask,
   deleteTask,
+  updateTaskStatus,
 } = require("../controllers/taskController");
 
-const { validateTask } = require("../middlewares/taskValidationMiddleware");
+const {
+  validateTask,
+  validateTaskStatus,
+} = require("../middlewares/taskValidationMiddleware");
 
 const { verifyToken, verifyRole } = require("../middlewares/authMiddleware");
 
@@ -34,5 +38,13 @@ router.put(
 
 // Delete a task
 router.delete("/:id", verifyToken, verifyRole(["admin"]), deleteTask);
+
+router.put(
+  "/:id/status",
+  verifyToken,
+  verifyRole(["admin", "editor"]),
+  validateTaskStatus,
+  updateTaskStatus
+);
 
 module.exports = router;
