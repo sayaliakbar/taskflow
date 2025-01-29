@@ -7,10 +7,12 @@ export const loginUser = createAsyncThunk(
   async (credentials, { rejectWithValue }) => {
     try {
       const response = await axios.post("/auth/login", credentials);
-      console.log(response);
+
       const { token, data: user } = response.data;
+
       if (typeof window !== "undefined" && response.status === 200) {
-        localStorage.setItem("user", response.data.data);
+        console.log(response.data.data);
+        localStorage.setItem("user", JSON.stringify(response.data.data));
         localStorage.setItem("auth_token", token); // Save token in localStorage on client side
       }
 
@@ -95,7 +97,7 @@ const authSlice = createSlice({
         const user = localStorage.getItem("user");
         if (token && user) {
           state.token = token;
-          state.user = user;
+          state.user = JSON.parse(user);
         }
       }
     },

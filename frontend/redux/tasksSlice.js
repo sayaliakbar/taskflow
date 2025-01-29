@@ -16,6 +16,7 @@ export const createTask = createAsyncThunk("tasks/createTask", async (task) => {
 export const deleteTaskById = createAsyncThunk(
   "tasks/deleteTask",
   async (id) => {
+    console.log(id);
     await axios.delete(`/tasks/${id}`);
     return id; // Return the ID of the deleted task
   }
@@ -50,7 +51,11 @@ const tasksSlice = createSlice({
       }
     },
     taskDeleted: (state, action) => {
-      state.tasks = state.tasks.filter((task) => task._id !== action.payload);
+      console.log(action.payload);
+
+      state.tasks = state.tasks.filter(
+        (task) => task._id !== action.payload._id
+      );
     },
   },
   extraReducers: (builder) => {

@@ -2,6 +2,7 @@ import { useRouter } from "next/router";
 import { useEffect } from "react";
 
 import getItem from "@utils/getToken";
+import { useSelector } from "@node_modules/react-redux/dist/react-redux";
 
 const { getToken, getUser } = getItem;
 
@@ -10,6 +11,7 @@ const withAuth = (WrappedComponent) => {
     const router = useRouter();
 
     const token = getToken();
+
     useEffect(() => {
       if (!token) {
         router.push("/login");
@@ -51,6 +53,7 @@ const onlyAdmin = (WrappedComponent) => {
   return (props) => {
     const token = getToken();
     const user = getUser();
+
     const router = useRouter();
 
     useEffect(() => {

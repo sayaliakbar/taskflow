@@ -9,7 +9,7 @@ import {
   taskDeleted,
 } from "@redux/tasksSlice";
 
-const socket = io(process.env.REACT_APP_BACKEND_URL);
+const socket = io(process.env.NEXT_PUBLIC_BACKEND_URL);
 
 const TaskList = () => {
   const dispatch = useDispatch();
@@ -138,7 +138,7 @@ const TaskList = () => {
       {status === "succeeded" && (
         <div className="mt-6">
           {paginatedTasks.length > 0 ? (
-            <ul className="space-y-4">
+            <ul className="space-y-4 flex flex-col w-[720px] items-center ">
               {paginatedTasks.map((task) => (
                 <li key={task._id} className="prompt_card">
                   <div>
@@ -149,7 +149,7 @@ const TaskList = () => {
                       {new Date(task.createdAt).toLocaleDateString()}
                     </p>
                   </div>
-                  <div className="flex-center space-x-2">
+                  <div className="flex-end space-x-2 mt-4 ">
                     {user?.role === "admin" || user?.role === "editor" ? (
                       <>
                         {task.status !== "In Progress" && (
@@ -157,25 +157,28 @@ const TaskList = () => {
                             onClick={() =>
                               handleStatusChange(task._id, "In Progress")
                             }
-                            className="blue_btn"
+                            className="bg-black text-white px-2 py-1 rounded-md hover:bg-gray-800"
                           >
                             Move to In Progress
                           </button>
                         )}
-                        {task.status !== "Done" && (
-                          <button
-                            onClick={() => handleStatusChange(task._id, "Done")}
-                            className="green_btn"
-                          >
-                            Mark as Done
-                          </button>
-                        )}
+                        {task.status !== "Done" &&
+                          task.status === "In Progress" && (
+                            <button
+                              onClick={() =>
+                                handleStatusChange(task._id, "Done")
+                              }
+                              className="bg-black text-white px-2 py-1 rounded-md hover:bg-gray-800"
+                            >
+                              Mark as Done
+                            </button>
+                          )}
                         {task.status !== "To-Do" && (
                           <button
                             onClick={() =>
                               handleStatusChange(task._id, "To-Do")
                             }
-                            className="yellow_btn"
+                            className=" border border-solid border-black text-black px-2 py-1 rounded-md hover:bg-gray-200"
                           >
                             Back to To-Do
                           </button>
@@ -190,7 +193,7 @@ const TaskList = () => {
                           dispatch(deleteTaskById(task._id));
                           socket.emit("deleteTask", task._id);
                         }}
-                        className="red_btn"
+                        className="bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-700"
                       >
                         Delete
                       </button>
