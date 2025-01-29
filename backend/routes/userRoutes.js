@@ -7,11 +7,13 @@ const {
   getUserById,
   deleteUserById,
   updateUserById,
+  updateUserStatusById,
 } = require("../controllers/userController");
 
 const {
   validateUser,
   validateUserByRole,
+  validateUserStatus,
 } = require("../middlewares/userValidationMiddleware");
 
 const { verifyToken, verifyRole } = require("../middlewares/authMiddleware");
@@ -32,6 +34,14 @@ router.put(
   validateUserByRole, // Handles role-based restrictions for updating fields
   validateUser, // Validates the request body
   updateUserById // Updates the user in the database
+);
+
+router.put(
+  "/:id/status",
+  verifyToken,
+  verifyRole(["admin"]),
+  validateUserStatus,
+  updateUserStatusById
 );
 
 module.exports = router;

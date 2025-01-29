@@ -70,4 +70,23 @@ const validateUserByRole = (req, res, next) => {
   return next(error);
 };
 
-module.exports = { validateUser, validateUserByRole };
+const validateUserStatus = [
+  body("role")
+    .notEmpty()
+    .withMessage("Role is required")
+    .bail()
+    .isIn(["admin", "viewer", "editor"])
+    .withMessage("Role must be either 'admin', 'viewer', or 'editor"),
+  (req, res, next) => {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      const error = new CustomError("Validation failed", 400);
+      error.errors = errors.array();
+      return next(error);
+    }
+    next();
+  },
+];
+
+module.exports = { validateUser, validateUserByRole, validateUserStatus };

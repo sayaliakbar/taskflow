@@ -59,4 +59,31 @@ const updateUserById = async (req, res) => {
   }
 };
 
-module.exports = { getUsers, getUserById, deleteUserById, updateUserById };
+const updateUserStatusById = async (req, res) => {
+  const { role } = req.body;
+
+  try {
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.role = role;
+
+    await user.save();
+
+    res.json(user);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+module.exports = {
+  getUsers,
+  getUserById,
+  deleteUserById,
+  updateUserById,
+  updateUserStatusById,
+};
