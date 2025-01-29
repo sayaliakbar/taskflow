@@ -1,14 +1,19 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { logout } from "../redux/authSlice";
+import { logout, initializeAuth } from "../redux/authSlice";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/router";
 
 const Navbar = () => {
-  const token = useSelector((state) => state.auth.token); // Get token from Redux store
+  const { user, token } = useSelector((state) => state.auth); // Get user from Redux store
+
   const dispatch = useDispatch();
   const router = useRouter();
+
+  useEffect(() => {
+    dispatch(initializeAuth());
+  }, [dispatch]);
 
   const [toggleDropdown, setToggleDropDown] = useState(false); // State for mobile dropdown
 
@@ -42,19 +47,27 @@ const Navbar = () => {
           alt="Project Logo"
           width={30}
           height={30}
-          className="object-contain"
+          className="object-contain rounded-full"
         />
-        <p className="logo_text">Project</p>
+        <p className="logo_text">Task Flow</p>
       </Link>
 
       {/* Desktop Navigation */}
       <div className="sm:flex hidden">
         {token ? (
           // If user is logged in, show these buttons
+
           <div className="flex gap-3 md:gap-5">
-            <Link href="/create-task" className="black_btn">
-              Create Task
-            </Link>
+            {user?.role === "admin" && (
+              <>
+                <Link href="/create-task" className="black_btn">
+                  Create Task
+                </Link>
+                <Link href="/users" className="black_btn">
+                  Users
+                </Link>
+              </>
+            )}
 
             <button
               onClick={handleLogout}
@@ -106,13 +119,25 @@ const Navbar = () => {
                 >
                   My Profile
                 </Link>
-                <Link
-                  href="/create-task"
-                  className="dropdown_link"
-                  onClick={() => setToggleDropDown(false)}
-                >
-                  Create Task
-                </Link>
+                {user?.role === "admin" && (
+                  <>
+                    <Link
+                      href="/create-task"
+                      className="dropdown_link"
+                      onClick={() => setToggleDropDown(false)}
+                    >
+                      Create Task
+                    </Link>
+                    <Link
+                      href="/users"
+                      className="dropdown_link"
+                      onClick={() => setToggleDropDown(false)}
+                    >
+                      Users
+                    </Link>
+                  </>
+                )}
+
                 <button
                   type="button"
                   onClick={() => {

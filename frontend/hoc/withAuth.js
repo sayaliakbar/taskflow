@@ -1,12 +1,15 @@
-import { useSelector } from "react-redux";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
+import getItem from "@utils/getToken";
+
+const { getToken, getUser } = getItem;
+
 const withAuth = (WrappedComponent) => {
   return (props) => {
-    const token = useSelector((state) => state.auth.token);
     const router = useRouter();
 
+    const token = getToken();
     useEffect(() => {
       if (!token) {
         router.push("/login");
@@ -44,5 +47,29 @@ const withOutToken = (WrappedComponent) => {
   };
 };
 
-const authHOCs = { withAuth, withOutToken };
+const onlyAdmin = (WrappedComponent) => {
+  return (props) => {
+    const token = getToken();
+    const user = getUser();
+    const router = useRouter();
+
+    useEffect(() => {
+      if (!token) {
+        // If not logged in, redirect to login page and save the attempted URL
+        router.push(`/login?redirect=${router.pathname}`);
+      } else if (user?.role !== "admin") {
+        // If logged in but not an admin, redirect to home page
+        router.push("/");
+      }
+    }, [user, token, router]);
+
+    if (!token || user?.role !== "admin") {
+      return null; // Show nothing while redirecting
+    }
+
+    return <WrappedComponent {...props} />;
+  };
+};
+
+const authHOCs = { withAuth, withOutToken, onlyAdmin };
 export default authHOCs;

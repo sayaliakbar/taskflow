@@ -5,7 +5,7 @@ const { withAuth } = authHOCs;
 
 const Home = () => {
   return (
-    <section className="w-full flex-center flex-col">
+    <section className="w-full flex-center flex-col mb-10">
       <TaskList />
     </section>
   );

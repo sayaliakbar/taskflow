@@ -1,43 +1,108 @@
-import { useEffect, useState } from "react";
-// import axios from "../api/axios";
-import Link from "next/link";
+import authHOCs from "@hoc/withAuth";
+
+const { onlyAdmin } = authHOCs;
+
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchUsers, updateUserRole, deleteUser } from "../../redux/usersSlice";
 
 const Users = () => {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+  const { users, status, error } = useSelector((state) => state.users);
 
-  if (loading) {
-    return <p>Loading users...</p>;
-  }
+  useEffect(() => {
+    dispatch(fetchUsers());
+  }, [dispatch]);
 
-  if (error) {
-    return <p className="text-red-500">Error: {error}</p>;
-  }
+  const handleUpdateRole = (userId, newRole) => {
+    dispatch(updateUserRole({ userId, role: newRole }));
+  };
+
+  const handleDeleteUser = (userId) => {
+    dispatch(deleteUser(userId));
+  };
 
   return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">All Users</h1>
-      {users.length === 0 ? (
-        <p>No users found.</p>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {users.map((user) => (
-            <div
-              key={user.id}
-              className="border rounded-lg p-4 shadow hover:shadow-lg transition-shadow"
-            >
-              <h2 className="text-lg font-semibold">{user.name}</h2>
-              <p>Email: {user.email}</p>
-              <Link href={`/users/${user.id}`}>
-                <a className="text-blue-500 hover:underline">View Profile</a>
-              </Link>
-            </div>
-          ))}
+    <>
+      <h1 className="head_text blue_gradient text-center">User Management</h1>
+      {status === "loading" && <p className="desc">Loading users...</p>}
+      {status === "failed" && <p className="desc text-red-500">{error}</p>}
+      {status === "succeeded" && (
+        <div className="mt-6">
+          <table className="table-auto w-full border-collapse border border-gray-300">
+            <thead>
+              <tr>
+                <th className="border border-gray-300 p-2">Name</th>
+                <th className="border border-gray-300 p-2">Email</th>
+                <th className="border border-gray-300 p-2">Role</th>
+                <th className="border border-gray-300 p-2">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((user) => (
+                <tr key={user._id} className="text-center">
+                  <td className="border border-gray-300 p-2">{user.name}</td>
+                  <td className="border border-gray-300 p-2">{user.email}</td>
+                  <td className="border border-gray-300 p-2">{user.role}</td>
+                  <td className="border border-gray-300 p-2 flex flex-col gap-2">
+                    <button
+                      onClick={() =>
+                        handleUpdateRole(
+                          user._id,
+                          user.role === "admin" ? "viewer" : "admin"
+                        )
+                      }
+                      className="black_btn"
+                    >
+                      {user.role === "admin"
+                        ? "Demote to Viewer"
+                        : "Promote to Admin"}
+                    </button>
+                    {user.role === "admin" && (
+                      <button
+                        onClick={() =>
+                          handleUpdateRole(
+                            user._id,
+                            user.role === "editor" ? "viewer" : "editor"
+                          )
+                        }
+                        className="outline_btn"
+                      >
+                        {user.role === "editor"
+                          ? "Demote to Viewer"
+                          : "Promote to Editor"}
+                      </button>
+                    )}
+                    {user.role !== "admin" && (
+                      <button
+                        onClick={() =>
+                          handleUpdateRole(
+                            user._id,
+                            user.role === "editor" ? "viewer" : "editor"
+                          )
+                        }
+                        className="outline_btn"
+                      >
+                        {user.role === "editor"
+                          ? "Demote to Viewer"
+                          : "Promote to Editor"}
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleDeleteUser(user._id)}
+                      className="black_btn bg-red-500 hover:bg-red-600"
+                    >
+                      Delete User
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
-    </div>
+    </>
   );
 };
 
-export default Users;
+export default onlyAdmin(Users);

@@ -56,3 +56,20 @@ export const validateConfirmPassword = (password, confirmPassword) => {
 
   return ""; // No error
 };
+
+export const validateTaskTitle = (title) => {
+  if (!title) return "Title is required";
+  if (title.length < 5) return "Title must be at least 5 characters.";
+  if (title.length > 50) return "Title must not exceed 50 characters.";
+  return "";
+};
+
+export const validateTaskDescription = (description) => {
+  console.log(description);
+  if (!description) return "Description is required";
+  if (description.length < 5)
+    return "Description must be at least 5 characters.";
+  if (description.length > 500)
+    return "Description must not exceed 500 characters.";
+  return "";
+};

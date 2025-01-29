@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { forgotPassword, loginUser } from "../../redux/authSlice";
+import { forgotPassword } from "../../redux/authSlice";
 import { useRouter } from "next/router";
 import Loading from "@components/Loading";
 import LocalError from "@components/LocalError";
@@ -17,7 +17,7 @@ const ForgotPassword = () => {
 
   const dispatch = useDispatch();
   const router = useRouter();
-  const { status, error } = useSelector((state) => state.auth);
+  const { status } = useSelector((state) => state.auth);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

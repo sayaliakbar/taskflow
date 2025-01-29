@@ -9,7 +9,7 @@ export const fetchTasks = createAsyncThunk("tasks/fetchTasks", async () => {
 
 export const createTask = createAsyncThunk("tasks/createTask", async (task) => {
   const response = await axios.post("/tasks", task);
-  console.log(response);
+
   return response.data; // Assuming backend returns the created task
 });
 
@@ -21,6 +21,18 @@ export const deleteTaskById = createAsyncThunk(
   }
 );
 
+export const updateTaskStatus = createAsyncThunk(
+  "tasks/updateStatus",
+  async ({ taskId, status }, { rejectWithValue }) => {
+    try {
+      const response = await axios.put(`/tasks/${taskId}/status`, { status });
+      return { taskId, status }; // Assuming the backend returns the updated task
+    } catch (error) {
+      return rejectWithValue(error.response.data.message);
+    }
+  }
+);
+
 // Tasks Slice
 const tasksSlice = createSlice({
   name: "tasks",
@@ -29,7 +41,18 @@ const tasksSlice = createSlice({
     status: "idle", // 'loading', 'succeeded', 'failed'
     error: null,
   },
-  reducers: {},
+  reducers: {
+    taskUpdated: (state, action) => {
+      const { taskId, status } = action.payload;
+      const task = state.tasks.find((task) => task._id === taskId);
+      if (task) {
+        task.status = status; // Update the status of the specific task
+      }
+    },
+    taskDeleted: (state, action) => {
+      state.tasks = state.tasks.filter((task) => task._id !== action.payload);
+    },
+  },
   extraReducers: (builder) => {
     builder
       // Fetch Tasks
@@ -51,8 +74,21 @@ const tasksSlice = createSlice({
       // Delete Task
       .addCase(deleteTaskById.fulfilled, (state, action) => {
         state.tasks = state.tasks.filter((task) => task.id !== action.payload);
+      })
+      // Update Task Status
+      .addCase(updateTaskStatus.fulfilled, (state, action) => {
+        const { taskId, status } = action.payload;
+        const task = state.tasks.find((task) => task._id === taskId);
+        if (task) {
+          task.status = status; // Update the status of the specific task
+        }
+      })
+      .addCase(updateTaskStatus.rejected, (state, action) => {
+        state.error = action.payload || "Failed to update task status";
       });
   },
 });
+
+export const { taskUpdated, taskDeleted } = tasksSlice.actions;
 
 export default tasksSlice.reducer;

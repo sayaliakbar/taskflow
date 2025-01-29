@@ -7,10 +7,16 @@ export const loginUser = createAsyncThunk(
   async (credentials, { rejectWithValue }) => {
     try {
       const response = await axios.post("/auth/login", credentials);
-      const { token } = response.data;
-      localStorage.setItem("auth_token", token);
-      return token;
+      console.log(response);
+      const { token, data: user } = response.data;
+      if (typeof window !== "undefined" && response.status === 200) {
+        localStorage.setItem("user", response.data.data);
+        localStorage.setItem("auth_token", token); // Save token in localStorage on client side
+      }
+
+      return { token, user };
     } catch (error) {
+      console.log(error);
       const message = error?.response?.data?.message || "Login failed";
       return rejectWithValue(message);
     }
@@ -50,7 +56,6 @@ export const forgotPassword = createAsyncThunk(
 export const resetPassword = createAsyncThunk(
   "auth/resetPassword",
   async ({ token, password }, { rejectWithValue }) => {
-    console.log(token, password);
     try {
       const response = await axios.post(`/auth/reset-password?token=${token}`, {
         password: password,
@@ -68,16 +73,31 @@ export const resetPassword = createAsyncThunk(
 const authSlice = createSlice({
   name: "auth",
   initialState: {
-    token: null, // Initialize null and manage via effects if needed
+    user: null,
+    token: null,
     status: "idle",
     error: null,
   },
   reducers: {
     logout(state) {
       state.token = null;
-      localStorage.removeItem("auth_token");
+      state.user = null;
       state.status = "idle";
       state.error = null;
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("user");
+        localStorage.removeItem("auth_token"); // Remove token from localStorage on client side
+      }
+    },
+    initializeAuth(state) {
+      if (typeof window !== "undefined") {
+        const token = localStorage.getItem("auth_token");
+        const user = localStorage.getItem("user");
+        if (token && user) {
+          state.token = token;
+          state.user = user;
+        }
+      }
     },
   },
   extraReducers: (builder) => {
@@ -87,7 +107,8 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.token = action.payload;
+        state.token = action.payload.token;
+        state.user = action.payload.user;
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.status = "failed";
@@ -128,5 +149,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout } = authSlice.actions;
+export const { logout, initializeAuth } = authSlice.actions;
 export default authSlice.reducer;
