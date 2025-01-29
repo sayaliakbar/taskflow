@@ -15,7 +15,12 @@ connectDB();
 
 const app = express();
 const httpServer = createServer(app);
-const io = new Server(httpServer);
+const io = new Server(httpServer, {
+  cors: {
+    origin: process.env.FRONTEND_URL,
+    methods: ["GET", "POST"],
+  },
+});
 
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
@@ -49,7 +54,7 @@ app.get("/", (req, res) => {
 });
 
 io.on("connection", (socket) => {
-  console.log("New client connected");
+  console.log("New client connected", socket.id);
 
   socket.on("disconnect", () => {
     console.log("Client disconnected");
