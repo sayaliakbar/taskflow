@@ -15,16 +15,10 @@ const { validateTask } = require("../middlewares/taskValidationMiddleware");
 const { verifyToken, verifyRole } = require("../middlewares/authMiddleware");
 
 // Create a new task
-router.post(
-  "/",
-  verifyToken,
-  validateTask,
-  verifyRole(["admin", "editor"]),
-  createTask
-);
+router.post("/", verifyToken, validateTask, verifyRole(["admin"]), createTask);
 
 // Get all tasks
-router.get("/", verifyToken, verifyRole(["admin", "editor"]), getTasks);
+router.get("/", verifyToken, getTasks);
 
 // Get a single task by ID
 router.get("/:id", verifyToken, getTaskById);

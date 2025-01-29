@@ -32,7 +32,6 @@ const registerUser = async (req, res, next) => {
     res.status(201).json({
       status: "success",
       message: "User created successfully",
-      token: generateToken(newUser._id),
       data: {
         id: newUser._id,
         name: newUser.name,
@@ -50,6 +49,7 @@ const loginUser = async (req, res, next) => {
 
   try {
     const user = await User.findOne({ email }).select("+password");
+
     if (!user) {
       throw new CustomError("Invalid email or password", 400);
     }
@@ -87,7 +87,7 @@ const forgotPassword = async (req, res, next) => {
     const resetToken = user.getResetPasswordToken();
     await user.save();
 
-    const resetUrl = `${process.env.FRONTEND_URL}/api/auth/reset-password?token=${resetToken}`;
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
 
     const mailOptions = {
       from: '"Admin" <sayaliakbar@gmail.com>',

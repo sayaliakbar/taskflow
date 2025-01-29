@@ -33,7 +33,7 @@ app.use(express.json());
 app.use(
   cors({
     origin: [
-      "http://localhost:5173", // Development origin
+      "http://localhost:3000", // Development origin
     ],
     credentials: true,
   })
@@ -41,6 +41,7 @@ app.use(
 
 app.use("/api/auth", require("../routes/authRoutes"));
 app.use("/api/tasks", require("../routes/taskRoutes"));
+app.use("/api/users", require("../routes/userRoutes"));
 
 // Example route
 app.get("/", (req, res) => {

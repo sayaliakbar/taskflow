@@ -28,14 +28,12 @@ router.post("/login", validateLogin, asyncHandler(loginUser));
 router.post(
   "/forgot-password",
   validateForgotPassword,
-  verifyToken,
   asyncHandler(forgotPassword)
 );
 
 router.post(
   "/reset-password",
   validateResetPassword,
-
   asyncHandler(resetPassword)
 );
 
